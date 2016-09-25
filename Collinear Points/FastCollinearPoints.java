@@ -1,4 +1,5 @@
-import java.util.ArrayList;
+// pz1943@163.com
+
 import java.util.Arrays;
 import edu.princeton.cs.algs4.StdDraw;
 import java.util.Comparator;
@@ -6,76 +7,82 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.In;
 
 public class FastCollinearPoints {
+    
     private int segsIndex = 0;
     private LineSegment[] lineSegments;
     public FastCollinearPoints(Point[] points) {
         // finds all line segments containing 4 or more points
-        int n = points.length * points.length;
-        ArrayList<Point> tuplePoints = new ArrayList<Point>();
-        Point[] unOrdered = new Point[points.length];
+        lineSegments = new LineSegment[points.length * points.length];
+        Point[] reSortedCopy;
+        Point[] sortedCopy = new Point[points.length];
+        if (points.length == 0) throw new java.lang.NullPointerException();
+        for (int i = 0; i < points.length; i++) {
+            if (points[i] == null) throw new java.lang.NullPointerException();
+            sortedCopy[i] = points[i];
+        }
+        Arrays.sort(sortedCopy);
+        for (int i = 0; i < points.length - 1; i++) {
+            if (sortedCopy[i].compareTo(sortedCopy[i + 1]) == 0) 
+                throw new java.lang.IllegalArgumentException();
+        }
+        reSortedCopy = Arrays.copyOf(sortedCopy, sortedCopy.length);
         
         for (int i = 0; i < points.length; i++) {
-            unOrdered[i] = points[i];
-        }
-        for (int i = 0; i < points.length; i++) {
-            Comparator<Point>  myCom = unOrdered[i].slopeOrder();
-            Arrays.sort(points, myCom); 
+            Comparator<Point>  myCom = sortedCopy[i].slopeOrder();
+            Arrays.sort(reSortedCopy, myCom); 
             for (int j = 1; j < points.length - 1;) {
                 double sp1;
                 double sp2;
                 int k = j;
                 do {
-                    sp1 = unOrdered[i].slopeTo(points[j]);
-                    sp2 = unOrdered[i].slopeTo(points[++j]);
+                    sp1 = sortedCopy[i].slopeTo(reSortedCopy[j]);
+                    sp2 = sortedCopy[i].slopeTo(reSortedCopy[++j]);
                     if (j == points.length - 1) {
-                        j += 1;
+                        if (sp1 == sp2)
+                            j += 1;
                         break;
                     }
                 } while (sp1 == sp2);
-                
-                Point beginPoint;
-                Point endPoint;
                 if (j > k + 2) {
-                    if (unOrdered[i].compareTo(points[k]) == 1) {
-                        beginPoint = points[k];
-                        if (unOrdered[i].compareTo(points[j - 1]) == 1) 
-                            endPoint = unOrdered[i];
-                        else endPoint = points[j - 1];
-                    } else { 
-                        beginPoint = unOrdered[i];
-                        endPoint = points[j - 1];
-                    }
-                    boolean repeatFlag = false;
-                    for (int l = 0; l < tuplePoints.size(); l += 2) 
-                        if (beginPoint == tuplePoints.get(l) && endPoint == tuplePoints.get(l + 1)) 
-                            repeatFlag = true;
-                    if (!repeatFlag) {
-                        tuplePoints.add(beginPoint);
-                        tuplePoints.add(endPoint);
+                    Point[] tmpPoints = Arrays.copyOfRange(reSortedCopy, k, j);
+                    Point endPoint = getEnd(tmpPoints);
+                    Point beginPoint = getBegin(tmpPoints);
+                    if (sortedCopy[i].compareTo(beginPoint) < 0) {
+                        lineSegments[segsIndex] = new LineSegment(sortedCopy[i], endPoint); 
                         segsIndex++;
                     }
                 }
             }
         }
-        lineSegments  = new LineSegment[segsIndex];
-        for (int i = 0; i < segsIndex; i++) {
-            lineSegments[i] = new LineSegment(tuplePoints.get(i*2), tuplePoints.get(i*2 + 1)); 
-        }
-//        for (LineSegment segment : segs) {
-//            if segment
-//        }
-//        
-        
     }
     
+
+    private Point getEnd(Point[] points) {
+        Point end = points[0];
+        for (int i = 1; i < points.length; i++) {
+            if (end.compareTo(points[i]) < 0)
+                end = points[i];
+        }
+        return end;
+    }
+    private Point getBegin(Point[] points) {
+        Point begin = points[0];
+        for (int i = 1; i < points.length; i++) {
+            if (begin.compareTo(points[i]) > 0)
+                begin = points[i];
+        }
+        return begin;
+    }
     public int numberOfSegments() {       
         // the number of line segments
         return segsIndex;
     }
     
-    
     public LineSegment[] segments() {
-        return lineSegments;
+        LineSegment[] segs = new LineSegment[segsIndex];
+        for (int i = 0; i < segsIndex; i++) 
+            segs[i] = lineSegments[i];
+        return segs;
     }
     
     public static void main(String[] args) {

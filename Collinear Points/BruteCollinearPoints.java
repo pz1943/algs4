@@ -1,16 +1,24 @@
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.In;
+import java.util.ArrayList;
 
 public class BruteCollinearPoints {
-    private LineSegment[] segs;
+    private LineSegment[] lineSegments;
     private int segsIndex = 0;
-    private int n;
     public BruteCollinearPoints(Point[] points) {
         // finds all line segments containing 4 points
-        n = points.length * points.length;
-        segs = new LineSegment[n];
-
+        ArrayList<Point> tuplePoints = new ArrayList<Point>();
+        
+        if (points.length == 0) throw new java.lang.NullPointerException();
+        for (int i = 0; i < points.length; i++) {
+            if (points[i] == null) throw new java.lang.NullPointerException();
+            for (int j = i + 1; j < points.length; j++) {
+                if (points[i].compareTo(points[j]) == 0) 
+                    throw new java.lang.IllegalArgumentException();
+            }
+        }
+        
         for (int i = 0; i < points.length - 3; i++) {
             for (int j = 1; j < points.length - 2; j++) {
                 double sp1 = points[i].slopeTo(points[j]);
@@ -20,8 +28,17 @@ public class BruteCollinearPoints {
                         for (int l = k + 1; l < points.length; l++) {
                             double sp3 = points[i].slopeTo(points[l]);
                             if (sp2 == sp3) {
-                                segs[segsIndex] = lineWith4(points[i], points[j], points[k], points[l]);
-                                segsIndex++;
+                                Point beginPoint = g(g(points[i], points[j]), g(points[k], points[l]));
+                                Point endPoint = m(m(points[i], points[j]), m(points[k], points[l]));
+                                boolean repeatFlag = false;
+                                for (int m = 0; m < tuplePoints.size(); m += 2) 
+                                    if (beginPoint == tuplePoints.get(m) && endPoint == tuplePoints.get(m + 1)) 
+                                    repeatFlag = true;
+                                if (!repeatFlag) {
+                                    tuplePoints.add(beginPoint);
+                                    tuplePoints.add(endPoint);
+                                    segsIndex++;
+                                }
                                 break;
                             }
                         }
@@ -29,6 +46,11 @@ public class BruteCollinearPoints {
                 }
             }
         }
+        lineSegments  = new LineSegment[segsIndex];
+        for (int i = 0; i < segsIndex; i++) {
+            lineSegments[i] = new LineSegment(tuplePoints.get(i*2), tuplePoints.get(i*2 + 1)); 
+        }
+
     }
     
     private LineSegment lineWith4(Point p1, Point p2, Point p3, Point p4) {
@@ -38,22 +60,21 @@ public class BruteCollinearPoints {
     }
     
     private Point g(Point p1, Point p2) {
-        return (p1.compareTo(p2) == 1) ? p1 : p2;
+        return (p1.compareTo(p2) > 0) ? p1 : p2;
     }
     
     private Point m(Point p1, Point p2) {
-        return (p1.compareTo(p2) == 1) ? p2 : p1;
+        return (p1.compareTo(p2) > 0) ? p2 : p1;
     }
     public int numberOfSegments() {       
         // the number of line segments
         return segsIndex;
     }
     public LineSegment[] segments() {
-        LineSegment[] resultSegments = new LineSegment[segsIndex];
-        for (int i = 0; i < segsIndex; i++) {
-            resultSegments[i] = segs[i];
-        }
-        return resultSegments;
+        LineSegment[] segs = new LineSegment[lineSegments.length];
+        for (int i = 0; i < lineSegments.length; i++) 
+            segs[i] = lineSegments[i];
+        return segs;
     }
     
     public static void main(String[] args) {
