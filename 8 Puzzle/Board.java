@@ -1,3 +1,7 @@
+// email: pz1943@163.com
+
+
+
 import java.util.Arrays;
 import java.util.Iterator; 
 
@@ -97,24 +101,28 @@ public class Board implements Iterable<Board>{
                 nbBlocks[index][row - 1][col] = blocks[row][col];
                 nbBlocks[index][row][col] = blocks[row - 1][col];
                 index++;
+                moved++;
             }
             if (row < dimension - 1) {
                 nbBlocks[index] = copy2D(blocks);
                 nbBlocks[index][row + 1][col] = blocks[row][col];
                 nbBlocks[index][row][col] = blocks[row + 1][col];
                 index++;
+                moved++;
             }
             if (col > 0) {
                 nbBlocks[index] = copy2D(blocks);
                 nbBlocks[index][row][col - 1] = blocks[row][col];
                 nbBlocks[index][row][col] = blocks[row][col - 1];
                 index++;
+                moved++;
             }
             if (col < dimension - 1) {
                 nbBlocks[index] = copy2D(blocks);
                 nbBlocks[index][row][col + 1] = blocks[row][col];
                 nbBlocks[index][row][col] = blocks[row][col + 1];
                 index++;
+                moved++;
             }
         }
         
